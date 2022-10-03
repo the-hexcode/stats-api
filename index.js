@@ -1,5 +1,6 @@
 const express = require('express');
 const { Base } = require('deta');
+const Joi = require('joi');
 const axios = require('axios');
 const cors = require('cors');
 
@@ -18,24 +19,31 @@ app.get('/', cors(corsConfig), async (req, res) => {
 });
 
 app.post('/stats', async (req, res) => {
+    // Auth
+    const { api_key } = req.query;
+    if (api_key !== process.env.API_KEY) return res.status(403).send("Unauthorized! Invalid api_key");
     // Get data
     const { key, guilds, users } = req.body;
-
-    const data = {
-        "key": "stats",
-        "guilds": guilds,
-        "users": users
+    // Validate
+    const { error } = validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+    else {
+        const data = {
+            "key": "stats",
+            "guilds": guilds,
+            "users": users
+        }
+        // Update database
+        const result = await db.put(data);
+        // Update Channels
+        await updateChannels(data);
+        return res.send(result);
     }
-    // Update database
-    const result = await db.put(data);
-    // Update Channels
-    await updateChannels(data);
-    return res.send(result);
 });
 
 async function updateChannels(stats) {
     try {
-        const url = 'https://discord.com/api/v9/channels/'
+        const url = 'https://discord.com/api/v10/channels/'
         const data = {
             name: `Servers: ${stats.guilds}`,
         }
@@ -52,6 +60,15 @@ async function updateChannels(stats) {
         return res.status(error.status).send(error.response.body);
     }
 }
+
+function validate(data) {
+    const schema = {
+        guilds: Joi.number().required(),
+        users: Joi.number().required()
+    }
+    return Joi.object(schema).validate(data);
+}
+
 
 // export 'app'
 module.exports = app;
