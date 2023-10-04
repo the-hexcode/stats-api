@@ -18,6 +18,11 @@ app.get('/', cors(corsConfig), async (req, res) => {
     res.send(data);
 });
 
+app.get('/discord', async (req, res) => {
+    const data = await db.get("stats");
+    return res.redirect(`https://img.shields.io/badge/servers-${data.guilds}-FF355E?style=social&logo=discord`);
+});
+
 app.post('/stats', async (req, res) => {
     // Auth
     const { api_key } = req.query;
