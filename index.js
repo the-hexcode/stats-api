@@ -10,7 +10,7 @@ app.use(express.json());
 const db = Base('data');
 
 const corsConfig = {
-    origin: "https://example.com",
+    origin: process.env.CORS_ORIGIN,
 }
 
 app.get('/', cors(corsConfig), async (req, res) => {
