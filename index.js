@@ -19,8 +19,12 @@ app.get('/', cors(corsConfig), async (req, res) => {
 });
 
 app.get('/discord', async (req, res) => {
+    let style = req.query.style;
+    styles = ["flat", "flat-square", "plastic", "for-the-badge", "social"];
+    if (!styles.includes(style)) style = "flat";
+
     const data = await db.get("stats");
-    return res.redirect(`https://img.shields.io/badge/servers-${data.guilds}-FF355E?style=social&logo=discord`);
+    return res.redirect(`https://img.shields.io/badge/servers-${data.guilds}-FF355E?style=${style}&logo=discord`);
 });
 
 app.post('/stats', async (req, res) => {
